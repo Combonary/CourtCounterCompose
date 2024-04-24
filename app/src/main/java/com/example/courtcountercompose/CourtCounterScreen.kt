@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -22,34 +25,35 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.courtcountercompose.ui.theme.CourtCounterComposeTheme
 
 @Composable
 fun CourtCounterScreen(
     onBackClicked: () -> Unit,
-    viewModel: CourtCounterViewModel = CourtCounterViewModel()
+    viewModel: CourtCounterViewModel = viewModel()
 ) {
-    val scoreA by viewModel.scoreA.collectAsState()
-
-    val scoreB by viewModel.scoreB.collectAsState()
+    val scoreA by viewModel.scoreA.collectAsStateWithLifecycle()
+    val scoreB by viewModel.scoreB.collectAsStateWithLifecycle()
 
     CourtCounterScreenContent(
         onBackClicked = onBackClicked,
         scoreA = scoreA,
         scoreB = scoreB,
-        onTeamAShotClicked = { viewModel.countShot(it) },
-        onTeamBShotClicked = { viewModel.countShot(it) },
-        onTeamAThreeClicked = { viewModel.countThreePointShot(it) },
-        onTeamBThreeClicked = { viewModel.countThreePointShot(it) },
+        onTeamAFreeThrowClicked = { viewModel.countAFreeThrowShot() },
+        onTeamBFreeThrowClicked = { viewModel.countBFreeThrowShot() },
+        onTeamAShotClicked = { viewModel.countAShot() },
+        onTeamBShotClicked = { viewModel.countBShot() },
+        onTeamAThreeClicked = { viewModel.countAThreePointShot() },
+        onTeamBThreeClicked = { viewModel.countBThreePointShot() },
         onResetClicked = { viewModel.resetGame() }
     )
 }
@@ -60,10 +64,12 @@ fun CourtCounterScreenContent(
     onBackClicked: () -> Unit,
     scoreA: Int,
     scoreB: Int,
-    onTeamAShotClicked: (Char) -> Unit,
-    onTeamBShotClicked: (Char) -> Unit,
-    onTeamAThreeClicked: (Char) -> Unit,
-    onTeamBThreeClicked: (Char) -> Unit,
+    onTeamAFreeThrowClicked: () -> Unit,
+    onTeamBFreeThrowClicked: () -> Unit,
+    onTeamAShotClicked: () -> Unit,
+    onTeamBShotClicked: () -> Unit,
+    onTeamAThreeClicked: () -> Unit,
+    onTeamBThreeClicked: () -> Unit,
     onResetClicked: () -> Unit
 ) {
     CourtCounterComposeTheme {
@@ -79,7 +85,7 @@ fun CourtCounterScreenContent(
                         IconButton(
                             onClick = onBackClicked
                         ) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, null)
+                            Icon(Icons.Outlined.ArrowBack, null)
                         }
                     }
                 )
@@ -99,10 +105,14 @@ fun CourtCounterScreenContent(
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState()),
                 color = MaterialTheme.colorScheme.background
             ) {
-                Column {
+                Column (
+                    modifier = Modifier.wrapContentHeight(),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -137,7 +147,7 @@ fun CourtCounterScreenContent(
                         Column {
                             Button(
                                 modifier = Modifier.width(120.dp),
-                                onClick = { onTeamAShotClicked('A') }
+                                onClick = { onTeamAShotClicked() }
                             ) {
                                 Text(text = "2 Points")
                             }
@@ -146,7 +156,7 @@ fun CourtCounterScreenContent(
                         Column {
                             Button(
                                 modifier = Modifier.width(120.dp),
-                                onClick = { onTeamBShotClicked('B') }
+                                onClick = { onTeamBShotClicked() }
                             ) {
                                 Text(text = "2 Points")
                             }
@@ -162,7 +172,7 @@ fun CourtCounterScreenContent(
                         Column {
                             Button(
                                 modifier = Modifier.width(120.dp),
-                                onClick = { onTeamAThreeClicked('A') }
+                                onClick = { onTeamAThreeClicked() }
                             ) {
                                 Text(text = "3 Points")
                             }
@@ -171,9 +181,34 @@ fun CourtCounterScreenContent(
                         Column {
                             Button(
                                 modifier = Modifier.width(120.dp),
-                                onClick = { onTeamBThreeClicked('B') }
+                                onClick = { onTeamBThreeClicked() }
                             ) {
                                 Text(text = "3 Points")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column {
+                            Button(
+                                modifier = Modifier.width(120.dp),
+                                onClick = { onTeamAFreeThrowClicked() }
+                            ) {
+                                Text(text = "Free Throw")
+                            }
+                        }
+
+                        Column {
+                            Button(
+                                modifier = Modifier.width(120.dp),
+                                onClick = { onTeamBFreeThrowClicked() }
+                            ) {
+                                Text(text = "Free Throw")
                             }
                         }
                     }
